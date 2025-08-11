@@ -1,5 +1,6 @@
 {
     "name": "kreatif/translum",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Kreatif\\Translum\\": "src"

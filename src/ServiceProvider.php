@@ -4,6 +4,7 @@ namespace Kreatif\Translum;
 
 use Kreatif\Translum\Support\TranslationService;
 use Statamic\Providers\AddonServiceProvider;
+use Statamic\Facades\CP\Nav;
 
 class ServiceProvider extends AddonServiceProvider
 {
@@ -21,6 +22,14 @@ class ServiceProvider extends AddonServiceProvider
 
     public function bootAddon()
     {
+        
+        Nav::extend(function (\Statamic\CP\Navigation\Nav $nav) {
+            $nav->create('translum')
+                ->section("translum")
+                ->route('translum.index')
+                ->icon('shopping-cart');
+        });
+
         // $this->loadRoutesFrom(__DIR__.'/../routes/cp.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'translum');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'translum');
