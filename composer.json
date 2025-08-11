@@ -1,0 +1,37 @@
+{
+    "name": "kreatif/translum",
+    "autoload": {
+        "psr-4": {
+            "Kreatif\\Translum\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kreatif\\Translum\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "statamic/cms": "^5.40"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "Translum",
+            "description": "Translum addon"
+        },
+        "laravel": {
+            "providers": [
+                "Kreatif\\Translum\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
