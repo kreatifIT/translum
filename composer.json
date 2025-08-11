@@ -1,5 +1,6 @@
 {
     "name": "kreatif/translum",
+    "version": "0.0.1",
     "autoload": {
         "psr-4": {
             "Kreatif\\Translum\\": "src"
@@ -32,6 +33,6 @@
             ]
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
