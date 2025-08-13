@@ -22,12 +22,11 @@ class ServiceProvider extends AddonServiceProvider
 
     public function bootAddon()
     {
-        
-        Nav::extend(function (\Statamic\CP\Navigation\Nav $nav) {
-            $nav->create('translum')
-                ->section("translum")
+
+        Nav::extend(function ($nav) {
+            $nav->content('Translations')
                 ->route('translum.index')
-                ->icon('shopping-cart');
+                ->icon('dictionary');
         });
 
         // $this->loadRoutesFrom(__DIR__.'/../routes/cp.php');
