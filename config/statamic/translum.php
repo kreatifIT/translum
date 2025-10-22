@@ -92,50 +92,45 @@ return [
         'case_sensitive' => false,
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | File Filtering
-    |--------------------------------------------------------------------------
-    |
-    | Control which translation files to load in the control panel.
-    | You can use 'all', 'include', or 'exclude' mode.
-    |
-    | Modes:
-    |   - 'all': Load all translation files (default)
-    |   - 'include': Only load specified files
-    |   - 'exclude': Load all except specified files
-    |
-    | Patterns support wildcards (*) for matching multiple files.
-    | Examples: 'messages', 'validation', 'auth', 'custom/*'
-    |
-    */
-    'file_filter' => [
-        'mode' => 'all', // Options: 'all', 'include', 'exclude'
-        'patterns' => [
-            // Examples:
-            // 'messages',
-            // 'validation',
-            // 'auth',
-            // 'custom/*',
-        ],
-    ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Vendor Translations
-    |--------------------------------------------------------------------------
-    |
-    | Enable loading translations from vendor packages.
-    | Vendor translations are typically located in lang/vendor/{package}
-    |
-    */
-    'vendor_translations' => [
-        'enabled' => false,
-        'packages' => [
-            // Examples:
-            // 'statamic',
-            // 'laravel-backup',
+
+
+    'translation_lookup' => [
+        'directories' => [
+            resource_path('lang'),
+            base_path('lang'),
         ],
+        'vendors_enabled' => [
+            // 'kreatif-forms', // <rootDirectory>/resources/lang/vendor/kreatif-forms
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | File Filtering
+        |--------------------------------------------------------------------------
+        |
+        | Control which translation files to load in the control panel.
+        | You can use 'all', 'include', or 'exclude' mode.
+        |
+        | Modes:
+        |   - 'all': Load all translation files (default)
+        |   - 'include': Only load specified files
+        |   - 'exclude': Load all except specified files
+        |
+        | Patterns support wildcards (*) for matching multiple files.
+        | Examples: 'messages', 'validation', 'auth', 'custom/*'
+        |
+        */
+        'file_filter' => [
+            'mode' => 'all', // Options: 'all', 'include', 'exclude'
+            'patterns' => [
+                // Examples:
+                // 'messages',
+                // 'validation',
+                // 'auth',
+                // 'custom/*',
+            ],
+        ]
     ],
 
     /*

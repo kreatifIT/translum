@@ -182,9 +182,9 @@ class TranslationService
         $cacheEnabled = config('statamic.translum.cache.enabled', true);
         $cacheKey = config('statamic.translum.cache.key_prefix', 'translum') . '.translation_data';
 
-        if ($cacheEnabled && Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
+        // if ($cacheEnabled && Cache::has($cacheKey)) {
+        //     return Cache::get($cacheKey);
+        // }
 
         $translations = [];
         $translationPaths = $this->getTranslationPaths();
@@ -195,11 +195,7 @@ class TranslationService
             }
         }
 
-        // Load vendor translations if enabled
-        if (config('statamic.translum.vendor_translations.enabled', false)) {
-            $this->loadVendorTranslations($translations, $locales);
-        }
-
+        // Vendor translations
         // Apply file filtering
         $translations = $this->applyFileFiltering($translations);
 
@@ -213,77 +209,44 @@ class TranslationService
 
     protected function getTranslationPaths(): array
     {
-        return [
+        return config('statamic.translum.translation_lookup.directories', [
             resource_path('lang'),
             base_path('lang')
-        ];
+        ]);
     }
 
-    protected function loadTranslationsFromPath(array &$translations, string $path, array $locales): void
+    protected function loadTranslationsFromPath(array &$translations, string $path, array $locales, bool $isVendor = false): void
     {
+        $vendorsEnabled = config('statamic.translum.translation_lookup.vendors_enabled', []);
         foreach (File::directories($path) as $localePath) {
             $locale = basename($localePath);
 
-            // Skip vendor directory at this level
-            if ($locale === 'vendor') {
-                continue;
-            }
-
             if (in_array($locale, $locales)) {
                 foreach (File::files($localePath) as $file) {
-                    if (pathinfo($file, PATHINFO_EXTENSION) !== 'php') {
+                    $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+                    // TODO: support json also
+                    if ($fileExtension !== 'php') {
                         continue;
                     }
 
-                    $filename = pathinfo($file, PATHINFO_FILENAME);
+                    if ($isVendor) {
+                        $vendorName = basename(dirname($localePath));
+                        $filename = 'vendor/' . $vendorName . '/' . pathinfo($file, PATHINFO_FILENAME);
+                    }else {
+                        $filename = pathinfo($file, PATHINFO_FILENAME);
+                    }
                     $data = include $file;
 
                     if (is_array($data)) {
                         $this->flattenAndStoreTranslations($translations, $filename, $locale, $data);
                     }
                 }
-            }
-        }
-    }
-
-    protected function loadVendorTranslations(array &$translations, array $locales): void
-    {
-        $vendorPackages = config('statamic.translum.vendor_translations.packages', []);
-        $translationPaths = $this->getTranslationPaths();
-
-        foreach ($translationPaths as $basePath) {
-            $vendorPath = $basePath . '/vendor';
-
-            if (!File::exists($vendorPath)) {
-                continue;
-            }
-
-            foreach (File::directories($vendorPath) as $packagePath) {
-                $packageName = basename($packagePath);
-
-                // If specific packages are defined, only load those
-                if (!empty($vendorPackages) && !in_array($packageName, $vendorPackages)) {
-                    continue;
-                }
-
-                foreach (File::directories($packagePath) as $localePath) {
-                    $locale = basename($localePath);
-
-                    if (!in_array($locale, $locales)) {
-                        continue;
-                    }
-
-                    foreach (File::files($localePath) as $file) {
-                        if (pathinfo($file, PATHINFO_EXTENSION) !== 'php') {
-                            continue;
-                        }
-
-                        $filename = "vendor/{$packageName}/" . pathinfo($file, PATHINFO_FILENAME);
-                        $data = include $file;
-
-                        if (is_array($data)) {
-                            $this->flattenAndStoreTranslations($translations, $filename, $locale, $data);
-                        }
+            } elseif($locale == 'vendor' && !empty($vendorsEnabled)) {
+                // Load vendor translations
+                foreach (File::directories($localePath) as $vendorPath) {
+                    $vendorName = basename($vendorPath);
+                    if (in_array($vendorName, $vendorsEnabled)) {
+                        $this->loadTranslationsFromPath($translations, $vendorPath, $locales, true);
                     }
                 }
             }
@@ -292,8 +255,8 @@ class TranslationService
 
     protected function applyFileFiltering(array $translations): array
     {
-        $mode = config('statamic.translum.file_filter.mode', 'all');
-        $patterns = config('statamic.translum.file_filter.patterns', []);
+        $mode = config('statamic.translum.translation_lookup.file_filter.mode', 'all');
+        $patterns = config('statamic.translum.translation_lookup.file_filter.patterns', []);
 
         if ($mode === 'all' || empty($patterns)) {
             return $translations;
@@ -303,7 +266,6 @@ class TranslationService
 
         foreach ($translations as $filename => $data) {
             $shouldInclude = false;
-
             foreach ($patterns as $pattern) {
                 if ($this->matchesPattern($filename, $pattern)) {
                     $shouldInclude = true;
