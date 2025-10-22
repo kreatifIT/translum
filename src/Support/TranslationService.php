@@ -99,14 +99,17 @@ class TranslationService
                 }
             }
 
-            // Add a Replicator field for new keys
+            // Add a Replicator field for new keys (not for vendor files)
             $newKeyFields = [];
-            if (config('statamic.translum.allow_new_keys', false)) {
+            if (config('statamic.translum.allow_new_keys', false) && !str_starts_with($filename, 'vendor/')) {
                 $newKeyFields = $this->buildNewKeyFields($filename, $locales, $fieldType, $fieldConfig);
             }
 
+            // Format tab display name for vendor translations
+            $displayName = $this->formatTabDisplayName($filename);
+
             $tabs[$filename] = [
-                'display' => ucfirst($filename),
+                'display' => $displayName,
                 'handle' => $filename,
                 'sections' => [
                     [ 'display' => 'Existing Translations', 'fields' => $existingFields ],
@@ -116,6 +119,22 @@ class TranslationService
         }
 
         return $tabs;
+    }
+
+    protected function formatTabDisplayName(string $filename): string
+    {
+        // Handle vendor translations: vendor/statamic/messages -> Statamic: Messages
+        if (str_starts_with($filename, 'vendor/')) {
+            $parts = explode('/', $filename);
+            if (count($parts) >= 3) {
+                $vendor = ucfirst($parts[1]); // statamic -> Statamic
+                $file = ucfirst($parts[2]); // messages -> Messages
+                return "{$vendor}: {$file}";
+            }
+        }
+
+        // Regular translations: just capitalize
+        return ucfirst(str_replace('_', ' ', $filename));
     }
 
     protected function buildNewKeyFields(string $filename, array $locales, string $fieldType, array $fieldConfig): array

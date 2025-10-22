@@ -162,12 +162,45 @@ class SaveTranslations
     {
         foreach ($translations as $filename => $localesData) {
             foreach ($localesData as $locale => $data) {
-                $filePath = resource_path("lang/{$locale}/{$filename}.php");
+                // Determine file path based on whether it's a vendor translation
+                $filePath = $this->getTranslationFilePath($filename, $locale);
+
                 $existing = File::exists($filePath) ? include $filePath : [];
                 $final = array_replace_recursive($existing, $data);
                 $this->writePhpArrayToFile($filePath, $final);
             }
         }
+    }
+
+    private function getTranslationFilePath(string $filename, string $locale): string
+    {
+        // Check if this is a vendor translation (format: vendor/package/file)
+        if (str_starts_with($filename, 'vendor/')) {
+            $parts = explode('/', $filename);
+            // vendor/statamic/messages -> lang/vendor/statamic/en/messages.php
+            if (count($parts) >= 3) {
+                $packageName = $parts[1];
+                $fileName = $parts[2];
+
+                // Try resource_path first, then base_path
+                $paths = [
+                    resource_path("lang/vendor/{$packageName}/{$locale}/{$fileName}.php"),
+                    base_path("lang/vendor/{$packageName}/{$locale}/{$fileName}.php"),
+                ];
+
+                // Return existing path or first option
+                foreach ($paths as $path) {
+                    if (File::exists($path)) {
+                        return $path;
+                    }
+                }
+
+                return $paths[0]; // Default to resource_path
+            }
+        }
+
+        // Regular translation file
+        return resource_path("lang/{$locale}/{$filename}.php");
     }
 
     private function writePhpArrayToFile(string $filePath, array $data): void

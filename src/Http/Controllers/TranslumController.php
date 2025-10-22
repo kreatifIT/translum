@@ -26,12 +26,31 @@ class TranslumController extends CpController
         $values = $translationService->getInitialValues($request);
         $fields = $blueprint->fields()->addValues($values)->preProcess();
 
+        // Get pagination and search info
+        $paginationEnabled = config('statamic.translum.pagination.enabled', true);
+        $perPage = config('statamic.translum.pagination.per_page', 50);
+        $currentPage = (int) $request->get('page', 1);
+        $searchQuery = $request->get('search', '');
+        $totalKeys = $translationService->getTotalTranslationCount();
+        $totalPages = $paginationEnabled ? (int) ceil($totalKeys / $perPage) : 1;
+
         return view('translum::index', [
             'title' => __('translum::labels.translum_translations'),
             'action' => cp_route('translum.update'),
             'blueprint' => $blueprint->toPublishArray(),
             'meta' => $fields->meta(),
             'values' => $fields->values(),
+            'pagination' => [
+                'enabled' => $paginationEnabled,
+                'current_page' => $currentPage,
+                'per_page' => $perPage,
+                'total_pages' => $totalPages,
+                'total_keys' => $totalKeys,
+            ],
+            'search' => [
+                'enabled' => config('statamic.translum.search.enabled', true),
+                'query' => $searchQuery,
+            ],
         ]);
     }
 
