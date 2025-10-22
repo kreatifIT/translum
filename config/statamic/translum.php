@@ -23,9 +23,10 @@ return [
             "type" => "bard",
             "remove_empty_nodes" => false,
             "smart_typography" => false,
-            "reading_time" => true,
-            "word_count" => true,
+            "reading_time" => false,
+            "word_count" => false,
             "save_html" => false,
+            'toolbar_mode' => 'floating',
         ],
     ],
 
