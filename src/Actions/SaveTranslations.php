@@ -3,6 +3,8 @@
 namespace Kreatif\Translum\Actions;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Statamic\Facades\Stache;
 use Statamic\Fields\Blueprint;
@@ -39,7 +41,57 @@ class SaveTranslations
         $translations = $this->unflattenSubmittedData($finalValues);
         $this->saveTranslationsToFiles($translations);
         // $this->saveNewKeys($newKeysData);
+
+        // Clear all relevant caches
+        $this->clearAllCaches();
+    }
+
+    /**
+     * Clear all caches that might contain translation data
+     */
+    protected function clearAllCaches(): void
+    {
+        // 1. Always clear Statamic Stache
         Stache::clear();
+
+        // 2. Always clear Translum cache
+        \Kreatif\Translum\Support\TranslationService::getInstance()->clearCache();
+
+        // 3. Clear Laravel translation cache if enabled
+        if (config('statamic.translum.clear_caches_on_save.translator_cache', true)) {
+            if (function_exists('app') && app()->has('translator')) {
+                app('translator')->setLoaded([]);
+            }
+        }
+
+        // 4. Clear view cache if enabled (CRITICAL for fixing cached translations in views)
+        if (config('statamic.translum.clear_caches_on_save.view_cache', true)) {
+            try {
+                Artisan::call('view:clear');
+            } catch (\Exception $e) {
+                // Silently fail if view:clear is not available
+            }
+        }
+
+        // 5. Clear general application cache if enabled
+        if (config('statamic.translum.clear_caches_on_save.application_cache', false)) {
+            try {
+                Cache::flush();
+            } catch (\Exception $e) {
+                // Silently fail if cache flush fails
+            }
+        }
+
+        // 6. Clear config cache if enabled and exists
+        if (config('statamic.translum.clear_caches_on_save.config_cache', false)) {
+            if (file_exists(app()->getCachedConfigPath())) {
+                try {
+                    Artisan::call('config:clear');
+                } catch (\Exception $e) {
+                    // Silently fail
+                }
+            }
+        }
     }
 
     private function saveNewKeys(array $newKeysData): void

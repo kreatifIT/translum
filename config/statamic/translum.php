@@ -64,5 +64,122 @@ return [
     */
     'new_key_validation_regex' => '/^[a-z0-9_.]+$/',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pagination
+    |--------------------------------------------------------------------------
+    |
+    | Enable pagination to load translations in chunks for better performance.
+    | Recommended when working with large translation files.
+    |
+    */
+    'pagination' => [
+        'enabled' => true,
+        'per_page' => 50, // Number of translation keys per page
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Search
+    |--------------------------------------------------------------------------
+    |
+    | Enable search functionality to filter translations by key or value.
+    |
+    */
+    'search' => [
+        'enabled' => true,
+        'search_in_values' => true, // Search in translation values, not just keys
+        'case_sensitive' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | File Filtering
+    |--------------------------------------------------------------------------
+    |
+    | Control which translation files to load in the control panel.
+    | You can use 'all', 'include', or 'exclude' mode.
+    |
+    | Modes:
+    |   - 'all': Load all translation files (default)
+    |   - 'include': Only load specified files
+    |   - 'exclude': Load all except specified files
+    |
+    | Patterns support wildcards (*) for matching multiple files.
+    | Examples: 'messages', 'validation', 'auth', 'custom/*'
+    |
+    */
+    'file_filter' => [
+        'mode' => 'all', // Options: 'all', 'include', 'exclude'
+        'patterns' => [
+            // Examples:
+            // 'messages',
+            // 'validation',
+            // 'auth',
+            // 'custom/*',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vendor Translations
+    |--------------------------------------------------------------------------
+    |
+    | Enable loading translations from vendor packages.
+    | Vendor translations are typically located in lang/vendor/{package}
+    |
+    */
+    'vendor_translations' => [
+        'enabled' => false,
+        'packages' => [
+            // Examples:
+            // 'statamic',
+            // 'laravel-backup',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Caching
+    |--------------------------------------------------------------------------
+    |
+    | Cache translation structure for improved performance.
+    | Cache is automatically cleared when translations are saved.
+    |
+    */
+    'cache' => [
+        'enabled' => true,
+        'ttl' => 3600, // Cache duration in seconds (1 hour)
+        'key_prefix' => 'translum',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Performance
+    |--------------------------------------------------------------------------
+    |
+    | Performance-related settings for handling large translation files.
+    |
+    */
+    'performance' => [
+        'lazy_load_tabs' => true, // Load tab content only when clicked
+        'chunk_size' => 100, // Number of keys to process at once
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Clearing on Save
+    |--------------------------------------------------------------------------
+    |
+    | Configure which caches should be cleared when translations are saved.
+    | This ensures that updated translations appear immediately in your views.
+    |
+    */
+    'clear_caches_on_save' => [
+        'view_cache' => true,        // Clear compiled views (recommended for production)
+        'translator_cache' => true,  // Clear Laravel translator cache
+        'application_cache' => false, // Clear application cache (use with caution in production)
+        'config_cache' => false,     // Clear config cache (usually not needed)
+    ],
 
 ];

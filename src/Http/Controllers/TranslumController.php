@@ -2,6 +2,8 @@
 
 namespace Kreatif\Translum\Http\Controllers;
 
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Kreatif\Translum\Actions\SaveTranslations;
 use Kreatif\Translum\Support\TranslationService;
@@ -14,12 +16,14 @@ class TranslumController extends CpController
 
     public function index(Request $request): \Illuminate\Contracts\View\View
     {
+        $this->authorize('edit translum');
+
         $translationService = TranslationService::getInstance();
 
         // Pass the full request to the service so it can check for query parameters.
         $blueprint = $translationService->buildBlueprint($request);
 
-        $values = $translationService->getInitialValues();
+        $values = $translationService->getInitialValues($request);
         $fields = $blueprint->fields()->addValues($values)->preProcess();
 
         return view('translum::index', [
@@ -34,6 +38,8 @@ class TranslumController extends CpController
 
     public function update(Request $request)
     {
+        $this->authorize('edit translum');
+
         $translationService = TranslationService::getInstance();
 
         // The blueprint must be rebuilt with the same context to ensure validation works correctly.
@@ -42,6 +48,79 @@ class TranslumController extends CpController
         (new SaveTranslations($request->all(), $blueprint, $translationService->getLocales()))->handle();
 
         return response()->json(['message' => __('translum::labels.translations_saved_successfully')]);
+    }
+
+    public function search(Request $request)
+    {
+        $this->authorize('edit translum');
+
+        $translationService = TranslationService::getInstance();
+        $locales = $translationService->getLocales();
+        $allData = $translationService->getTranslationData($locales);
+
+        $search = $request->get('q', '');
+        $file = $request->get('file');
+
+        $results = [];
+
+        foreach ($allData as $filename => $keys) {
+            if ($file && $filename !== $file) {
+                continue;
+            }
+
+            foreach ($keys as $key => $values) {
+                $matches = false;
+
+                // Search in key
+                if (stripos($key, $search) !== false) {
+                    $matches = true;
+                }
+
+                // Search in values
+                if (!$matches && config('statamic.translum.search.search_in_values', true)) {
+                    foreach ($values as $locale => $value) {
+                        if (is_string($value) && stripos($value, $search) !== false) {
+                            $matches = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($matches) {
+                    $results[] = [
+                        'file' => $filename,
+                        'key' => $key,
+                        'values' => $values,
+                    ];
+                }
+            }
+        }
+
+        return response()->json([
+            'results' => $results,
+            'count' => count($results),
+        ]);
+    }
+
+    public function stats(Request $request)
+    {
+        $this->authorize('view translum stats');
+
+        $translationService = TranslationService::getInstance();
+        $locales = $translationService->getLocales();
+        $files = $translationService->getTranslationFiles();
+        $totalKeys = $translationService->getTotalTranslationCount();
+
+        return response()->json([
+            'locales' => $locales,
+            'locales_count' => count($locales),
+            'files' => $files,
+            'files_count' => count($files),
+            'total_keys' => $totalKeys,
+            'cache_enabled' => config('statamic.translum.cache.enabled', true),
+            'pagination_enabled' => config('statamic.translum.pagination.enabled', true),
+            'per_page' => config('statamic.translum.pagination.per_page', 50),
+        ]);
     }
 
     public function update_old(Request $request)
