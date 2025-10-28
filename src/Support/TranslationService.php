@@ -31,8 +31,9 @@ class TranslationService
         $locales = $this->getLocales();
         $translationData = $this->getTranslationData($locales);
 
+        $enabledSearch = config('statamic.translum.search.enabled', true);
         // Apply search filter if provided
-        if ($request && $request->has('search')) {
+        if ($request && $enabledSearch && $request->has('search') && !empty($request->get('search'))) {
             $translationData = $this->filterTranslations($translationData, $request->get('search'));
         }
 
@@ -290,7 +291,7 @@ class TranslationService
         return (bool) preg_match($regex, $filename);
     }
 
-    protected function filterTranslations(array $translations, string $search): array
+    protected function filterTranslations(array $translations, ?string $search): array
     {
         if (empty($search)) {
             return $translations;

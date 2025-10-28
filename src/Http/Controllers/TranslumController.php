@@ -36,7 +36,7 @@ class TranslumController extends CpController
 
         return view('translum::index', [
             'title' => __('translum::labels.translum_translations'),
-            'action' => cp_route('translum.update'),
+            'action' => cp_route('translum.update', array_merge([], $request->query())),
             'blueprint' => $blueprint->toPublishArray(),
             'meta' => $fields->meta(),
             'values' => $fields->values(),
