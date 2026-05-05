@@ -4,6 +4,7 @@ namespace Kreatif\Translum\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Kreatif\Translum\Support\PhpTranslationFile;
 use Kreatif\Translum\Support\TranslationService;
 
 class TranslumSyncCommand extends Command
@@ -85,7 +86,7 @@ class TranslumSyncCommand extends Command
             File::put($filePath, "<?php\n\nreturn [];\n");
         }
 
-        $translations = include $filePath;
+        $translations = PhpTranslationFile::read($filePath);
 
         // Set the key with empty value
         $keys = explode('.', $key);
@@ -102,7 +103,6 @@ class TranslumSyncCommand extends Command
         $current = '';
 
         // Save back to file
-        $content = "<?php\n\nreturn " . var_export($translations, true) . ";\n";
-        File::put($filePath, $content);
+        PhpTranslationFile::write($filePath, $translations);
     }
 }

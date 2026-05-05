@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Kreatif\Translum\Support\PhpTranslationFile;
 use Statamic\Facades\Stache;
 use Statamic\Fields\Blueprint;
 use Statamic\Fieldtypes\Bard as BardFieldtype;
@@ -106,7 +107,7 @@ class SaveTranslations
                     $filename = str_replace('new_keys_', '', $replicatorHandle);
 
                     $filePath = resource_path("lang/{$locale}/{$filename}.php");
-                    $translations = File::exists($filePath) ? include $filePath : [];
+                    $translations = PhpTranslationFile::read($filePath);
                     // Use the correct $index to build the handle.
                     $fieldHandle = "{$filename}.$newKey.{$index}.type.{$locale}";
                     $processedValue = $this->processSingleValue($set[$locale], $fieldHandle);
@@ -165,7 +166,7 @@ class SaveTranslations
                 // Determine file path based on whether it's a vendor translation
                 $filePath = $this->getTranslationFilePath($filename, $locale);
 
-                $existing = File::exists($filePath) ? include $filePath : [];
+                $existing = PhpTranslationFile::read($filePath);
                 $final = array_replace_recursive($existing, $data);
                 $this->writePhpArrayToFile($filePath, $final);
             }
@@ -205,10 +206,6 @@ class SaveTranslations
 
     private function writePhpArrayToFile(string $filePath, array $data): void
     {
-        if (!File::exists(dirname($filePath))) {
-            File::makeDirectory(dirname($filePath), 0755, true);
-        }
-        $content = "<?php\n\nreturn " . var_export($data, true) . ";\n";
-        File::put($filePath, $content);
+        PhpTranslationFile::write($filePath, $data);
     }
 }

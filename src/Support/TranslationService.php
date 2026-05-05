@@ -236,7 +236,7 @@ class TranslationService
                     }else {
                         $filename = pathinfo($file, PATHINFO_FILENAME);
                     }
-                    $data = include $file;
+                    $data = PhpTranslationFile::read($file->getPathname());
 
                     if (is_array($data)) {
                         $this->flattenAndStoreTranslations($translations, $filename, $locale, $data);
